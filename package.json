@@ -1,0 +1,7 @@
+{
+  "name": "dev.rymenants.backupwatch",
+  "version": "0.1.1",
+  "main": "app.js",
+  "license": "MIT",
+  "description": "Homey app that watches backup jobs and warns when one fails or stops running"
+}

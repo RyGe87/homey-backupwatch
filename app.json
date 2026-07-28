@@ -1,0 +1,311 @@
+{
+  "id": "dev.rymenants.backupwatch",
+  "version": "0.1.1",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "Backup Watch",
+    "nl": "Back-upwacht"
+  },
+  "description": {
+    "en": "Watches your backup jobs and warns you when one fails or stops running.",
+    "nl": "Bewaakt je back-uptaken en waarschuwt je als er een mislukt of stilvalt."
+  },
+  "category": [
+    "tools"
+  ],
+  "brandColor": "#3d7a5a",
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "author": {
+    "name": "Geert Rymenants"
+  },
+  "capabilities": {
+    "backup_state": {
+      "type": "enum",
+      "title": {
+        "en": "Status",
+        "nl": "Status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "values": [
+        {
+          "id": "ok",
+          "title": {
+            "en": "OK",
+            "nl": "OK"
+          }
+        },
+        {
+          "id": "failed",
+          "title": {
+            "en": "Failed",
+            "nl": "Mislukt"
+          }
+        },
+        {
+          "id": "overdue",
+          "title": {
+            "en": "Overdue",
+            "nl": "Achterstallig"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "nl": "Onbekend"
+          }
+        }
+      ]
+    },
+    "backup_last_run": {
+      "type": "string",
+      "title": {
+        "en": "Last run",
+        "nl": "Laatste keer"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false
+    },
+    "backup_detail": {
+      "type": "string",
+      "title": {
+        "en": "Detail",
+        "nl": "Toelichting"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false
+    },
+    "measure_backup_files": {
+      "type": "number",
+      "title": {
+        "en": "Files",
+        "nl": "Bestanden"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "units": {
+        "en": "files",
+        "nl": "bestanden"
+      },
+      "decimals": 0,
+      "insights": true
+    }
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "backup_failed",
+        "title": {
+          "en": "A backup failed",
+          "nl": "Een back-up is mislukt"
+        },
+        "hint": {
+          "en": "Triggers when a backup job reports a failure.",
+          "nl": "Wordt geactiveerd wanneer een back-uptaak een fout meldt."
+        },
+        "tokens": [
+          {
+            "name": "job",
+            "type": "string",
+            "title": {
+              "en": "Job",
+              "nl": "Taak"
+            }
+          },
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason",
+              "nl": "Reden"
+            }
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=job"
+          }
+        ]
+      },
+      {
+        "id": "backup_succeeded",
+        "title": {
+          "en": "A backup succeeded",
+          "nl": "Een back-up is geslaagd"
+        },
+        "tokens": [
+          {
+            "name": "job",
+            "type": "string",
+            "title": {
+              "en": "Job",
+              "nl": "Taak"
+            }
+          },
+          {
+            "name": "files",
+            "type": "number",
+            "title": {
+              "en": "Files",
+              "nl": "Bestanden"
+            }
+          },
+          {
+            "name": "detail",
+            "type": "string",
+            "title": {
+              "en": "Detail",
+              "nl": "Toelichting"
+            }
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=job"
+          }
+        ]
+      },
+      {
+        "id": "backup_overdue",
+        "title": {
+          "en": "A backup stopped running",
+          "nl": "Een back-up is stilgevallen"
+        },
+        "hint": {
+          "en": "Triggers when no result came in within the expected window. This catches a server that is switched off entirely.",
+          "nl": "Wordt geactiveerd wanneer er binnen de verwachte termijn niets is gemeld. Dit vangt ook een server die helemaal uit staat."
+        },
+        "tokens": [
+          {
+            "name": "job",
+            "type": "string",
+            "title": {
+              "en": "Job",
+              "nl": "Taak"
+            }
+          },
+          {
+            "name": "hours",
+            "type": "number",
+            "title": {
+              "en": "Hours since last result",
+              "nl": "Uren sinds laatste resultaat"
+            }
+          }
+        ],
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=job"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "backup_is_healthy",
+        "title": {
+          "en": "The backup !{{is|is not}} healthy",
+          "nl": "De back-up !{{is|is niet}} in orde"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=job"
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "id": "job",
+      "name": {
+        "en": "Backup job",
+        "nl": "Back-uptaak"
+      },
+      "class": "sensor",
+      "capabilities": [
+        "backup_state",
+        "backup_last_run",
+        "backup_detail",
+        "measure_backup_files"
+      ],
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan"
+      ],
+      "images": {
+        "small": "/drivers/job/assets/images/small.png",
+        "large": "/drivers/job/assets/images/large.png"
+      },
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "max_age_hours",
+          "type": "number",
+          "label": {
+            "en": "Expected within (hours)",
+            "nl": "Verwacht binnen (uren)"
+          },
+          "hint": {
+            "en": "If no result arrives within this many hours, the job is marked overdue. A daily backup usually needs a little slack, for example 26.",
+            "nl": "Komt er binnen dit aantal uren geen resultaat binnen, dan geldt de taak als achterstallig. Een dagelijkse back-up heeft meestal wat speling nodig, bijvoorbeeld 26."
+          },
+          "value": 26,
+          "min": 1,
+          "max": 720
+        }
+      ]
+    }
+  ],
+  "api": {
+    "report": {
+      "method": "POST",
+      "path": "/report",
+      "public": true
+    },
+    "jobs": {
+      "method": "GET",
+      "path": "/jobs",
+      "public": true
+    }
+  }
+}
